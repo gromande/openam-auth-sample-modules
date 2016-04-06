@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModuleProperties PUBLIC
+ "=//iPlanet//Authentication Module Properties XML Interface 1.0 DTD//EN"
+        "jar://com/sun/identity/authentication/Auth_Module_Properties.dtd">
+
+<ModuleProperties moduleName="Module1" version="1.0" >
+    <Callbacks length="2" order="1" timeout="600" header="Using Module1">
+        <NameCallback isRequired="true">
+            <Prompt>Username</Prompt>
+        </NameCallback>
+        <PasswordCallback echoPassword="false" >
+            <Prompt>Password</Prompt>
+        </PasswordCallback>
+    </Callbacks>
+    <Callbacks length="0" order="2" timeout="600" header="#ERROR MESSAGE#" error="true" />
+</ModuleProperties>
