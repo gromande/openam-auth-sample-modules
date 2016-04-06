@@ -12,5 +12,9 @@
             <Prompt>Password</Prompt>
         </PasswordCallback>
     </Callbacks>
-    <Callbacks length="0" order="2" timeout="600" header="#ERROR MESSAGE#" error="true" />
+    <Callbacks length="1" order="2" timeout="600" header="#ERROR MESSAGE#" error="true">
+        <NameCallback>
+            <Prompt>#THIS PROMPT WILL NEVER BE SHOWN#</Prompt>
+        </NameCallback>
+    </Callbacks>
 </ModuleProperties>
