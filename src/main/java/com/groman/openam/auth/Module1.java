@@ -35,6 +35,7 @@ public class Module1 extends AMLoginModule {
 
     private final static Debug debug = Debug.getInstance(MODULE_NAME);
 
+    private Map sharedState;
     private ResourceBundle bundle;
 
     @Override
@@ -47,6 +48,7 @@ public class Module1 extends AMLoginModule {
         if (debug.messageEnabled()) {
             debug.message("Module1::init");
         }
+        this.sharedState = sharedState;
         bundle = amCache.getResBundle(RES_BUNDLE_NAME, getLoginLocale());
     }
 
@@ -81,12 +83,22 @@ public class Module1 extends AMLoginModule {
         if (debug.messageEnabled()) {
             debug.message("Succesful authentication for username: " + username);
         }
+        storeUsername(username);
         return ISAuthConstants.LOGIN_SUCCEED;
     }
     
     private void setErrorMessage(String error_code) throws AuthLoginException {
         //Get error message from resource bundle and substitute header
         substituteHeader(ERROR_STATE, bundle.getString(error_code));
+    }
+    
+    private void storeUsername(String username) {
+        if (debug.messageEnabled()) {
+            debug.message("Storing username in Shared State: " + username);
+        }
+        if (sharedState != null) {
+            sharedState.put(getUserKey(), username);
+        }
     }
 
 }
