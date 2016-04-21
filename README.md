@@ -42,14 +42,24 @@ You can find the distribution zip file (*openam-auth-sample-modules-dist.zip*) i
 ```    
 * Update module properties *Access Control > **REALM_NAME** > Authentication > Module Instances > **MODULE_NAME***
 
+## Authentication Chains
+* Create authentication service:
+```
+    $ ssoadm create-auth-cfg -u amadmin -f /tmp/admin.pwd --name <SERVICE_NAME> --realm <REALM_NAME>
+```
+* Add modules to the chain:
+```
+    $ ssoadm add-auth-cfg-entr -u amadmin -f /tmp/admin.pwd --name <SERVICE_NAME> --modulename <MODULE_NAME> --criteria <REQUIRED,REQUISITE,SUFFICIENT,OPTIONAL> --position  <0,1,2,3...> --realm <REALM_NAME>
+```
 ## Curl Commands
 
 * Authenticate
+
 ```
 curl  -k --request POST  \
   --header "X-OpenAM-Username: demo"  \
   --header "X-OpenAM-Password: changeit"  \
-  --header "Content-Type: application/json"  "https://openam.indigoconsulting.com:8443/sso/json/authenticate?authIndexType=module&authIndexValue=Module1"
+  --header "Content-Type: application/json"  "https://openam.indigoconsulting.com:8443/sso/json/authenticate"
 ```
 * Upgrade Session
 ```

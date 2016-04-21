@@ -14,17 +14,24 @@ import com.iplanet.sso.SSOTokenManager;
 import com.sun.identity.authentication.spi.AMLoginModule;
 import com.sun.identity.authentication.spi.AuthLoginException;
 import com.sun.identity.authentication.util.ISAuthConstants;
+import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.sun.identity.shared.debug.Debug;
 
+@SuppressWarnings("rawtypes")
 public class Module2 extends AMLoginModule {
     // Name of the debug file
     private final static String MODULE_NAME = "Module2";
+    
+    //ShareState object keys
+    private final static String SSN_KEY = "com.groman.ssn";
     
     private final static String SSN = "111223333";
     
     private Map sharedState;
     private String username;
     private String UUID;
+    private boolean sharedStateEnabled;
+    private String sharedStateBehaviorPattern;
     
     private final static int LOGIN_START = 1;
 
@@ -42,7 +49,24 @@ public class Module2 extends AMLoginModule {
             debug.message("Module2::init");
         }
         this.sharedState = sharedState;
+        
+        sharedStateEnabled = Boolean.valueOf(CollectionHelper.getMapAttr(
+                options, ISAuthConstants.SHARED_STATE_ENABLED, "false")
+                ).booleanValue();
+
+        sharedStateBehaviorPattern = CollectionHelper.getMapAttr(options,
+            ISAuthConstants.SHARED_STATE_BEHAVIOR_PATTERN,
+            "tryFirstPass");
+        
         loadCredentials();
+        
+        debug.message("Is ShareState enabled: " + sharedStateEnabled);
+        debug.message("ShareState Behavior Patter: " + sharedStateBehaviorPattern);
+        
+        if (username == null || username.length() == 0) {
+            throw new RuntimeException("Missing username");
+        }
+
     }
 
     @Override
@@ -59,10 +83,25 @@ public class Module2 extends AMLoginModule {
             throw new AuthLoginException("Invalid state"); 
         }
         
-        // Get credentials from callbacks
-        NameCallback nc = (NameCallback) callbacks[0];
-        String ssn = nc.getName();
-        ssn = ssn.replace("-", "");
+        // Get credentials
+        String ssn = null;
+        if ((callbacks == null || callbacks.length == 0) && sharedStateEnabled) {
+            debug.message("Callbacks are empty. Trying with SharedState");
+            ssn = (String) sharedState.get(SSN_KEY);
+            if (!SSN.equals(ssn) && "tryFirstPass".equals(sharedStateBehaviorPattern)) {
+                debug.message("Invalid SSN but it's tryFirstPass. Displaying login page");
+                return LOGIN_START;
+            }
+        } else {
+            NameCallback nc = (NameCallback) callbacks[0];
+            ssn = nc != null ? nc.getName() : null;
+        }
+        
+        //Remove hyphens
+        if (ssn != null) {
+            ssn = ssn.replace("-", "");
+        }
+        
         if (!SSN.equals(ssn)) {
             throw new AuthLoginException("Invalid SSN: " + ssn); 
         }
@@ -77,11 +116,10 @@ public class Module2 extends AMLoginModule {
     private void loadCredentials() {
         //get username from previous authentication
         try {
-            username = (String) sharedState.get(getUserKey());
+            username = (String) sharedState.get(ISAuthConstants.SHARED_STATE_USERNAME);
             if (debug.messageEnabled()) {
                 debug.message("loadCredentials() : Got username from shared state: " + username);
             }
-            username = (String) sharedState.get(getUserKey());
             if (username == null || username.isEmpty()) {
                 if (debug.messageEnabled()) {
                     debug.message("Session upgrade case");
